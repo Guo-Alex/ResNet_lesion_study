@@ -1,0 +1,17 @@
+
+===Introduction===
+
+* caffemodel
+  + CNN_bn_30.caffemodel     38W iterations     77.66 %
+    delete 8th block, best, 76.58 %.
+
+* copy parameter from caffemodel,
+* create new caffemodel
+  + copy_some_parameter.py        caffe.Net(new_prototxt, old_caffemodel, caffe.TEST)
+  + copy_some_parameter_1.py      one by one
+
+* compare parameters between two caffemodel
+  + compare.py
+
+* create caffemodels
+  + auto.sh       create caffemodels

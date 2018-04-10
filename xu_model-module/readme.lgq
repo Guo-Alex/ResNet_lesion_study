@@ -1,0 +1,16 @@
+
+===Introduction===
+
+# 原模型在150000迭代时，正确率可以达到78.78%.
+* best, 6nd block, 64.91 %.
+
+* copy parameter from caffemodel,
+* create new caffemodel
++ copy_some_parameter.py        caffe.Net(new_prototxt, old_caffemodel, caffe.TEST)
++ copy_some_parameter_1.py      one by one
+
+* compare parameters between two caffemodel
++ compare.py
+
+* create caffemodels
++ auto.sh       create caffemodels

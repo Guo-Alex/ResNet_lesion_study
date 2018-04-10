@@ -1,0 +1,13 @@
+## lgq ##
+#######################################
++ codes:
+    CNN_bn_30.prototxt: 脚本生成的
+
+    double_CNN_bn.prototxt: 手动修改的
+
+    snapshot: 备份有手动的caffemodel
+
++ log
+    正确率： 77.06 %， 8W 次迭代时。
+    scripts: 将两次测试的正确率拼接起来
+    temp_0 在前, temp 在后

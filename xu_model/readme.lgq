@@ -1,0 +1,6 @@
+
+===File Introduction===
+*CNN.prototxt:   xu original 
+*CNN_bn.prototxt:   zengjishen bn+scale replace bn layers
+
+best: 37W iteration, 79.17 %

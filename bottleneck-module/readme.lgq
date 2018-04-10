@@ -1,0 +1,9 @@
+
+================================ Introductions ====================================
+
+# 原模型120000 72.58%
+# delete 2nd block, 57.28%
+# log
+    * xu_model_bottleneck-module.jpg
+    delete module from xu model in total 30 layers, that is, 10 block.
+    2 block, max accuracy 70.92 %

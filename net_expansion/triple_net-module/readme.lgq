@@ -1,0 +1,7 @@
+
+## Introductions ##
+
+# log
+    * xu_model_40-module.jpg
+    delete module from xu model in total 40 layers, that is, 20 block.
+    12 block, max accuracy 72.09 %

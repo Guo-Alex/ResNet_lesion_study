@@ -1,0 +1,3 @@
+
+
+generate_CNN_bn_40-1.py: 40层, 去掉block 1.

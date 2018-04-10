@@ -1,0 +1,9 @@
+
+# 41W iterations, max accuracy is 79.21 %.
+
+* log
+  + xu_model_bn_bottleneck_train_20170906.log :lr is larger, max value of accuracy happened earlier.
+  
+  + xu_model_bn_bottleneck_train_20170913.log :inv is used to train.
+
+  + xu_model_bottleneck_v2_20170921.log :bs_lr:0.0001.
