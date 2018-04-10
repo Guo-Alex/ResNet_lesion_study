@@ -1,7 +1,6 @@
 # ResNet_lession_study
 == Introductions ==
-# file means
-# lgq
+( file means; by lgq )
 
 * backups
   + t_20170905.tar.gz comes from 172.31.234.233

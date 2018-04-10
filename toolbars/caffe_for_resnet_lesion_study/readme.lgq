@@ -1,0 +1,41 @@
+=== lgq 修改篇 ===
+
++ DCT: xu's kernels 文件夹拷贝至caffe目录
+
++ include/caffe/
+* filler.hpp:    修改kernels路径
+  filler_hpp.bk: 官网备份
+
++ include/caffe/layers/
+* quant_trunc_abs_layer.hpp:    复制
+  quantize.hpp
+* relu_recover_layer.hpp:       复制
+
++ src/caffe/layers/
+* quant_trunc_abs_layer.cpp:    复制
+  quant_trunc_abs_layer.cu
+  quantize.cu
+  quantize.cpp
+* relu_recover_layer.cu:        复制
+  relu_recover_layer.hpp
+
++ src/caffe/proto/caffe.proto
+* 410 line
+optional QuantTruncAbsParameter quant_trunc_abs_param = 501;
+* 1420 line
+message QuantTruncAbsParameter {
+  enum ProcessMethod {
+    QUANTTRUNCABS = 0;
+    QUANT = 1;
+    ABS = 2;
+    TRUNC = 3;
+    QUANTTRUNC = 4;
+    QUANTABS = 5;
+    TRUNCABS = 6;
+  }
+  optional ProcessMethod process = 1 [default = QUANTTRUNCABS];
+  optional uint32 threshold = 2 [default = 1];
+  optional float qstep = 3 [default = 1.0];
+}
+
+      
