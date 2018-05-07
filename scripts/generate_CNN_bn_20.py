@@ -1,20 +1,40 @@
+#-*- coding:utf-8 -*-
+#author:lgq
 import sys
 import caffe
 from caffe import layers as L
 from caffe.proto import caffe_pb2
-## net > block(skip and downsampling) > module
+# net > block(skip and downsampling) > module
+# 生成徐氏网络文件，即CNN_bn_20.prototxt
+# 徐氏网络有block组成，block有两种：skip block和 downsampling block
+# 而block由module（残差模块）和shotcut组成
 
+# layer name    output size
+# conv1         511x511
+# conv2         256x256
+# conv3_*       256x256
+# conv4_*       128x128
+# conv5_*       64x64
+# conv6_*       32x32
+# conv7_*       16x16
+
+average pool, 384-d fc, softmax
+
+
+# 生成module
 def add_module(bottom, num_output, stride):
     conv = L.Convolution(bottom, param=[{'lr_mult':1, 'decay_mult':0}], num_output=num_output, 
                          pad=1, kernel_size=3, stride=stride, bias_term=False,
                          weight_filler=dict(type='gaussian', std=round(0.01,2)))
+    #正则化层
     bn = L.BatchNorm(conv, moving_average_fraction=round(0.05,2), param=[{'lr_mult':0}, {'lr_mult':0},
                                                                 {'lr_mult':0}], in_place=True)
     scale = L.Scale(conv, bias_term=True, in_place=True)
     return conv, bn, scale
 
-
+# 生成downsampling block
 def add_downsampling_block(bottom, num_output):
+    # 下采样模块res1
     [res1, bn1, scale1] = add_module(bottom, 2*num_output, 2)
     [conv1, bn2, scale2] = add_module(bottom, num_output, 1)
     relu1 = L.ReLURecover(conv1, in_place=True)
@@ -24,31 +44,36 @@ def add_downsampling_block(bottom, num_output):
     relu2 = L.ReLU(res2, in_place=True)
     return res1, bn1, scale1, conv1, bn2, scale2, relu1, conv2, bn3, scale3, res2, relu2
 
-
+# 生成skip block
 def add_skip_block(bottom, num_output):
     [conv1, bn1, scale1] = add_module(bottom, num_output, 1)
     relu1 = L.ReLURecover(conv1, in_place=True)
     
     [conv2, bn2, scale2] = add_module(conv1, num_output, 1)
+    # bottom不做任何变化，表示skip connection
     res = L.Eltwise(bottom, conv2)
     relu2 = L.ReLU(res, in_place=True)
     return conv1, bn1, scale1, relu1, conv2, bn2, scale2, res, relu2
 
-
+# 生成徐氏网络
 def create_neural_net(input_file, batch_size=50):
     net = caffe.NetSpec()
+    # 输入层
     net.data, net.label = L.Data(batch_size=batch_size, source=input_file, 
                                   backend = caffe.params.Data.LMDB, ntop=2, 
                                   include=dict(phase=caffe.TRAIN), name='juniward04')
-
-    ## pre-process
+    
+    # pre-process 预处理层
+    ## DCT变换
     net.conv1 = L.Convolution(net.data, num_output=16, kernel_size=4, stride=1,
                                pad=1, weight_filler=dict(type='dct4'),
                                param=[{'lr_mult':0, 'decay_mult':0}],
                                bias_term=False)
+    ## 截断
     TRUNCABS = caffe_pb2.QuantTruncAbsParameter.TRUNCABS
     net.quanttruncabs=L.QuantTruncAbs(net.conv1, process=TRUNCABS, threshold=8, in_place=True)
-
+    
+    # 生成10个block，其中5个是downsampling block
     ## block 1
     [net.conv1_proj, net.bn2, net.scale2, net.conv512_1, net.bn2_1, net.scale2_1,
      net.relu512_1, net.conv512_to_256, net.bn2_2, net.scale2_2, net.res512_to_256,
@@ -85,21 +110,23 @@ def create_neural_net(input_file, batch_size=50):
     [net.conv16_1, net.bn2_23, net.scale2_23, net.relu16_1, net.conv16_2, net.bn2_24, 
      net.scale2_24, net.res16_2, net.relu16_2] = add_skip_block(net.res32_to_16, 384)
     
-    ## global pool
+    # global pool 池化层
     AVE = caffe_pb2.PoolingParameter.AVE
     net.global_pool = L.Pooling(net.res16_2, pool=AVE, kernel_size=8, stride=1)
     
-    ## full connecting
+    # full connecting 全连接层
     net.fc = L.InnerProduct(net.global_pool, param=[{'lr_mult':1}, {'lr_mult':2}], num_output=2, 
                             weight_filler=dict(type='xavier'), bias_filler=dict(type='constant'))
-    ## accuracy
+    # accuracy 计算
     net.accuracy = L.Accuracy(net.fc, net.label, include=dict(phase=caffe.TEST))
-    ## loss
+    # loss 计算
     net.loss = L.SoftmaxWithLoss(net.fc, net.label)
     
     return net.to_proto()
 
 if __name__=='__main__':
+    # train_file: 图像库的路径
+    # output_file: 生成的prototxt文件名
     train_file = sys.argv[1]
     output_file = sys.argv[2]
     # batch_size = 50
